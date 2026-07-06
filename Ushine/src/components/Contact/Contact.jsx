@@ -22,9 +22,30 @@ export function Contact() {
             placeholder="Your Name"
             className="w-full p-4 rounded-lg border"
           />
+          <div className="flex items-center rounded-lg border border-gray-300 bg-white">
+            <span className="px-4 py-4 text-gray-700 border-r border-gray-300">+91</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="Phone Number"
+              className="w-full p-4 rounded-r-lg outline-none text-gray-700"
+              maxLength={10}
+              onKeyDown={(e) => {
+                if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+            />
+          </div>
           <input
             type="email"
             placeholder="Email"
+            className="w-full p-4 rounded-lg border"
+          />
+          <input
+            type="password"
+            placeholder="Password"
             className="w-full p-4 rounded-lg border"
           />
           <select className="w-full p-4 rounded-lg border">
