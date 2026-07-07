@@ -10,4 +10,13 @@ import { ApiResponse } from "../utils/ApiResponse";
 //
 const userRegistration = asyncHandlers(async (req, res, next) => {
 
+    //taking user input from the request body
+    const { username, email, phone_no, category, message } = req.body;
+
+    //validating the input
+    if (!username || !email || !phone_no || !category) {
+        return new ApiError(400, "please provide all required fields");
+    }
+
+    
 })
