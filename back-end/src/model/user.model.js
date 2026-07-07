@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
         index: true,
     },
 
-       email: {
+    email: {
         type: String,
         required: true,
         unique: true,
@@ -21,11 +21,19 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true,
     },
-    
-    password: {
+
+    category: {
         type: String,
         required: true,
-        minlength: 6,
-    }
+        enum: ["haircut", "color", "treatment", "other"],
+    },
+
+    message: {
+        type: String,
+        required: false,
+        maxlength: 500,
+    },
 
 })
+
+export const User = mongoose.model('User', userSchema);

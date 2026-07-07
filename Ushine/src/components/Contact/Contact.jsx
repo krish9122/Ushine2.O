@@ -1,4 +1,15 @@
+import { useState } from "react";
+
 export function Contact() {
+  const [message, setMessage] = useState("");
+
+  const handleMessageChange = (e) => {
+    const value = e.target.value;
+    if (value.length <= 500) {
+      setMessage(value);
+    }
+  };
+
   return (
     <section id="contact" className="py-24 px-[10%] bg-[#faf4f0]">
       <h2 className="text-3xl text-center">Book an Appointment</h2>
@@ -43,21 +54,36 @@ export function Contact() {
             placeholder="Email"
             className="w-full p-4 rounded-lg border"
           />
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full p-4 rounded-lg border"
-          />
           <select className="w-full p-4 rounded-lg border">
             <option>Haircut & Styling</option>
             <option>Color Services</option>
             <option>Treatments</option>
+            <option>Other</option>
           </select>
-          <textarea
-            rows="4"
-            placeholder="Message"
-            className="w-full p-4 rounded-lg border"
-          ></textarea>
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Day"
+              className="w-full p-4 rounded-lg border"
+            />
+            <input
+              type="date"
+              className="w-full p-4 rounded-lg border"
+            />
+          </div>
+          <div className="relative">
+            <textarea
+              rows="4"
+              maxLength={500}
+              value={message}
+              onChange={handleMessageChange}
+              placeholder="Message"
+              className="w-full p-4 pr-20 rounded-lg border"
+            ></textarea>
+            <p className="absolute bottom-3 right-3 text-sm text-gray-500">
+              {message.length}/500
+            </p>
+          </div>
           <button className="w-full p-4 bg-orange-500 text-white rounded-lg text-lg">
             Request Appointment
           </button>
