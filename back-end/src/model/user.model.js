@@ -28,12 +28,19 @@ const userSchema = new mongoose.Schema({
         enum: ["haircut", "color", "treatment", "other"],
     },
 
+    date: {
+        type: Date,
+        required: true,
+    },
+
     message: {
         type: String,
         required: false,
         maxlength: 500,
     },
 
-})
+},{
+    timestamps: true,
+});
 
 export const User = mongoose.model('User', userSchema);
