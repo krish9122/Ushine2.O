@@ -4,6 +4,7 @@ import adminRouter from "./routes/admin.rout.js";
  
 const app = express();
 
+app.use(cookiesparser());
 app.use(express.json());
 
 //routers

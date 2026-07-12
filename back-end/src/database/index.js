@@ -1,4 +1,4 @@
-import dns from "node:dns"; //here
+import dns from "node:dns"; 
 import mongoose from "mongoose";
 import { DB_name } from "../constains.js";
 
@@ -10,7 +10,7 @@ const connectDb = async () => {
         }
 
         // Set custom DNS servers if provided in the environment variables, otherwise use default DNS servers
-        const dnsServers = process.env.MONGODB_DNS_SERVERS
+        const dnsServers = process.env.MONGODB_DNS_SERVERS //here
             ? process.env.MONGODB_DNS_SERVERS.split(",").map((server) => server.trim()).filter(Boolean)
             : ["8.8.8.8", "1.1.1.1"];
 
