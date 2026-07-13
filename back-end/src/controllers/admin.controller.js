@@ -2,6 +2,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import asyncHandlers from "../utils/asyncHandlers.js";
 import { Admin } from "../model/admin.model.js";
 import { ApiError } from "../utils/ApiError.js";
+import jwt from "jsonwebtoken";
 
 // method to generate access and refresh tokens
 const generateAccessAndRefreshTokens = async (adminId) => {
@@ -18,7 +19,7 @@ const generateAccessAndRefreshTokens = async (adminId) => {
 // admin login controller
 const adminLogin = asyncHandlers(async (req, res) => {
     const { username, gmail, password } = req.body;
-    
+
     //extracting data from request body
     if (!username || !gmail || !password) {
         throw new ApiError(400, "Please provide all required fields");
@@ -65,6 +66,31 @@ const adminLogin = asyncHandlers(async (req, res) => {
 });
 
 const adminLogout = asyncHandlers(async (req, res) => {
+    try {
+        const tokens = req.cookies?.refreshTokens || req.header("authorization")?.replace("Bearer ", "");
+        if (!tokens) {
+            throw new ApiError(401, "No refresh token provided");
+        }
 
-export default {adminLogin, adminLogout};
+        const decoded = jwt.verify(tokens, process.env.JWT_SECRET);
+        const admin = await Admin.findById(decoded?._id).select("-password -refreshToken");
+
+        if (!admin) {
+            throw new ApiError(404, "Admin not found");
+        }
+
+        admin.refreshToken = null;
+        await admin.save({ validateBeforeSave: false });
+
+        return res
+            .status(200)
+            .clearCookie("refreshTokens")
+            .clearCookie("accessTokens")
+            .json(new ApiResponse(200, null, "Admin logged out successfully"));
+    } catch (error) {
+        throw new ApiError(401, error?.message);
+    }
+});
+
+export { adminLogin, adminLogout };
 
