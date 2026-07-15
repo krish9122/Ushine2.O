@@ -16,14 +16,14 @@ const userRegistration = asyncHandlers(async (req, res, next) => {
 
     //validating the input
     if (!username || !email || !phone_no || !category || !date) {
-        return new ApiError(400, "please provide all required fields");
+        throw new ApiError(400, "please provide all required fields");
     }
 
     //checking if the user already exists
     const existingUser = await User.findOne({ $or: [{ email }, { phone_no }] });
 
     if (existingUser) {
-        return new ApiError(409, "user with email or phone number already exists");
+        throw new ApiError(409, "user with email or phone number already exists");
     }
 
     //creating a new user
@@ -39,7 +39,7 @@ const userRegistration = asyncHandlers(async (req, res, next) => {
     //sending respomse
     return res.
     status(201)
-    .json(new ApiResponse(201, "user registered successfully" ));
+    .json(new ApiResponse(201, newUser, "user registered successfully" ));
 
 })
 
