@@ -39,6 +39,12 @@ const userSchema = new mongoose.Schema({
         maxlength: 500,
     },
 
+    status: {
+        type: String,
+        enum: ["pending","confirmed","completed"],
+        default: "pending",
+    }
+
 },{
     timestamps: true,
 });
