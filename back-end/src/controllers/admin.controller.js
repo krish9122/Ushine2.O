@@ -272,6 +272,17 @@ const updateBookingStatus = asyncHandlers(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, booking, "Booking status updated successfully"));
 });
 
+    //fetching user message if exist
+const getBookingsWithMessages = asyncHandlers(async (req, res) => {
+    
+    //if message is availabe then fetch it
+    const usersWithMessages = await User.find({message: { $ne: "" }});
+
+    //response
+    return res.status(200).json(new ApiResponse(200,usersWithMessages,"messages fetched successfully,"))
+    
+});
+
 const deleteBooking = asyncHandlers(async (req, res) => {
     const { id } = req.params;
 
@@ -321,6 +332,7 @@ export {
     getAllBookings,
     getBookingById,
     updateBookingStatus,
+    getBookingsWithMessages,
     deleteBooking,
     getDashboardStats,
 };

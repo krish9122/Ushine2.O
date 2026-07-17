@@ -8,6 +8,7 @@ import {
     getAllBookings,
     getBookingById,
     updateBookingStatus,
+    getBookingsWithMessages,
     deleteBooking,
     getDashboardStats
 }
@@ -21,6 +22,7 @@ adminRouter.route("/logout").post(verifyJWT, adminLogout);
 adminRouter.route("/change-password").post(verifyJWT, adminChangePassword);
 adminRouter.route("/change-name").post(verifyJWT, changeAdminName);
 adminRouter.route("/bookings").get(verifyJWT, getAllBookings);
+adminRouter.route("/bookings/message").get(verifyJWT, getBookingsWithMessages);
 adminRouter.route("/bookings/:id").get(verifyJWT, getBookingById);
 adminRouter.route("/bookings/:id/status").patch(verifyJWT, updateBookingStatus);
 adminRouter.route("/bookings/:id").delete(verifyJWT, deleteBooking);
