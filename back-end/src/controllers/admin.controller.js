@@ -4,6 +4,9 @@ import { Admin } from "../model/admin.model.js";
 import { User } from "../model/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import mongoose from "mongoose";
+import { generateOtp } from "../utils/generateOtp.js";
+import mailSender from "../utils/nodemaler.js";
+import { Otp } from "../model/otp.model.js";
 
 // method to generate access and refresh tokens
 const generateAccessAndRefreshTokens = async (adminId) => {
@@ -29,7 +32,7 @@ const adminCreation = asyncHandlers(async (req, res) => {
     }
 
     //checking if admin already exists
-    const existingAdmin = await Admin.findOne({role: 'admin'});
+    const existingAdmin = await Admin.findOne({ role: 'admin' });
 
     if (existingAdmin) {
         throw new ApiError(400, "Admin already exists");
@@ -227,9 +230,8 @@ const getBookingById = asyncHandlers(async (req, res) => {
     const { id } = req.params;
 
     //validation
-    if(!id)
-    {
-        throw new ApiError(400,"there is no id");
+    if (!id) {
+        throw new ApiError(400, "there is no id");
     }
 
     //checkinng id exist or not
@@ -238,7 +240,7 @@ const getBookingById = asyncHandlers(async (req, res) => {
     }
 
     //checking booking 
-    const booking = await User.findById(id).select("-email" , "-phone_no");
+    const booking = await User.findById(id).select("-email -phone_no");
     if (!booking) {
         throw new ApiError(404, "Booking not found");
     }
@@ -272,24 +274,28 @@ const updateBookingStatus = asyncHandlers(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, booking, "Booking status updated successfully"));
 });
 
-    //fetching user message if exist
+//fetching user message if exist
 const getBookingsWithMessages = asyncHandlers(async (req, res) => {
-    
+
     //if message is availabe then fetch it
-    const usersWithMessages = await User.find({message: { $ne: "" }});
+    const usersWithMessages = await User.find({ message: { $ne: "" } });
 
     //response
-    return res.status(200).json(new ApiResponse(200,usersWithMessages,"messages fetched successfully,"))
-    
+    return res.status(200).json(new ApiResponse(200, usersWithMessages, "messages fetched successfully,"))
+
 });
 
 const deleteBooking = asyncHandlers(async (req, res) => {
+
+    //getting user by id
     const { id } = req.params;
 
+    //validation
     if (!mongoose.isValidObjectId(id)) {
         throw new ApiError(400, "Invalid booking id");
     }
 
+    //deleating booking 
     const booking = await User.findByIdAndDelete(id);
     if (!booking) {
         throw new ApiError(404, "Booking not found");
@@ -323,6 +329,109 @@ const getDashboardStats = asyncHandlers(async (req, res) => {
     }, "Dashboard statistics fetched successfully"));
 });
 
+// reset password request: send OTP
+const passwordReset = asyncHandlers(async (req, res) => {
+
+    const gmail = req.body.gmail?.trim().toLowerCase();
+
+    if (!gmail) {
+        throw new ApiError(400, "Please provide an email");
+    }
+
+    const admin = await Admin.findOne({ gmail }).select("-password -refreshToken");
+
+    if (!admin) {
+        throw new ApiError(400, "No such email exists");
+    }
+
+    const otp = generateOtp();
+
+    await Otp.deleteMany({ gmail });
+    await Otp.create({
+        otpHash: String(otp),
+        gmail,
+    });
+
+    await mailSender(gmail, otp);
+
+    return res.status(200).json(new ApiResponse(200, null, "OTP sent successfully"));
+
+});
+
+    // const handleVerifyOtp = asyncHandlers(async(req,res) => {
+
+    //     const {otp , gmail} = req.body;
+
+    //     if(!otp || gmail){
+    //         throw new ApiError(400,"gmail and otp not found")
+    //     }
+
+    //     const storedOtp = await Otp.findOne({ gmail });
+
+    //     if(!storedOtp){
+    //         throw new ApiError(400 , "invalid or expired otp")
+    //     }
+
+    //     Otp.compareOtp()
+    // });
+
+    const handleVerifiedOtp = asyncHandlers(async(req,res) => {
+
+        const {otp,gmail} = req.body;
+
+        if(!otp || !gmail)
+        {
+            throw new ApiError(400,"uncomplete credintials");
+        }
+
+        const storedOtp = otp.findOne({email , otp}).select("-password");
+
+        if (!storedOtp || Date.now() > Otp.createdAt.getTime() + 60*60*1000) {
+            throw new ApiError(400,"invalid or expired otp")
+        }
+
+        const isOtpCorrect = await storedOtp.compareOtp(otp);//here
+
+        if(!isOtpCorrect) throw new ApiError(400,"invalid or expired otp");
+
+
+
+        return req.status(200).json(ApiResponse(200,null,"otp verified successfully"));
+
+    });
+
+const newPassword = asyncHandlers(async (req, res) => {
+    const { newPassword, gmail, otp } = req.body;
+
+    if (!newPassword || !gmail || !otp) {
+        throw new ApiError(400, "Please provide all credentials correctly");
+    }
+
+    const storedOtp = await Otp.findOne({ gmail });
+
+    if (!storedOtp) {
+        throw new ApiError(400, "Invalid or expired OTP");
+    }
+
+    const isOtpCorrect = await storedOtp.compareOtp(otp);
+
+    if (!isOtpCorrect) {
+        throw new ApiError(400, "Invalid or expired OTP");
+    }
+
+    const admin = await Admin.findOne({ gmail });
+
+    if (!admin) {
+        throw new ApiError(400, "Something went wrong");
+    }
+
+    admin.password = newPassword;
+    await admin.save({ validateBeforeSave: false });
+
+    await Otp.deleteMany({ gmail });
+
+    return res.status(200).json(new ApiResponse(200, null, "Password reset successfully"));
+});
 export {
     adminCreation,
     adminLogin,
@@ -335,5 +444,8 @@ export {
     getBookingsWithMessages,
     deleteBooking,
     getDashboardStats,
+    passwordReset,
+    handleVerifiedOtp,
+    newPassword,
 };
 
